@@ -8,6 +8,29 @@
 
 **Input**: User description: "Sistema mobile para acompanhar os exercícios de fisioterapia passados para fazer em casa, com controle do tempo de cada etapa do exercício, quantidade de repetições e quantidade de séries. Treino formado por séries de exercícios ou exercícios diretos, com dias da semana e horários. Série é um conjunto de exercícios com tempo entre séries; organizar por série não é obrigatório. Exercício é um conjunto de etapas com descrição e tempo de execução, possui repetições e pode ser livre de tempo e repetição. Cada elemento deve ter um check indicando conclusão. O sistema deve mostrar barra ou símbolo com a porcentagem já realizada e o tempo restante para finalizar o treino. O disparo inicial de cada exercício é manual por um botão em tela, com opção de iniciar automaticamente após o anterior definindo um tempo de preparação. A interface do treino deve ser uma timeline vertical com todos os elementos e seus tempos."
 
+## Clarifications
+
+### Session 2026-09-09
+
+- Q: Uma Série pode se repetir várias vezes dentro do treino, ou cada repetição do grupo é
+  cadastrada separadamente? → A: A Série tem um campo "quantidade de séries": o grupo de
+  exercícios se repete N vezes, com o tempo de descanso aplicado entre cada repetição do grupo e
+  não após a última.
+- Q: Quando o mesmo treino é executado mais de uma vez no dia, os checks de conclusão zeram a
+  cada execução? → A: Cada execução é uma Sessão própria com checks próprios; ao abrir o treino,
+  se houver sessão inacabada do mesmo dia o app oferece retomar ou recomeçar, e em um novo dia a
+  execução sempre começa zerada.
+- Q: Quando o usuário pula um item durante o treino, esse item conta como concluído no cálculo da
+  porcentagem? → A: Não. O item pulado sai do cálculo, sendo removido do total, e fica marcado na
+  timeline como pulado, em estado visualmente distinto de concluído.
+- Q: O que acontece quando o usuário aciona "adiar" durante a contagem de preparação de um
+  exercício automático? → A: A contagem é cancelada e o exercício passa a aguardar o botão de
+  início apenas nesta sessão; a configuração automática do exercício permanece intacta para as
+  próximas execuções.
+- Q: O app deve manter a tela do celular ligada enquanto o treino está em execução? → A: Sim. A
+  tela permanece ligada durante toda a execução e volta ao comportamento normal do sistema ao
+  terminar, pausar ou sair do treino.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Executar o treino do dia acompanhando tempo e progresso (Priority: P1)
@@ -71,8 +94,9 @@ série.
    mais horários, **Then** o treino é salvo e passa a aparecer na lista de treinos.
 2. **Given** um treino em edição, **When** a usuária adiciona um exercício diretamente ao treino
    sem criar nenhuma série, **Then** o app aceita a estrutura sem exigir série.
-3. **Given** uma série em edição, **When** a usuária informa o tempo de descanso entre séries,
-   **Then** esse tempo é salvo e passa a compor a timeline e o tempo total do treino.
+3. **Given** uma série em edição, **When** a usuária informa a quantidade de séries e o tempo de
+   descanso entre séries, **Then** o grupo de exercícios passa a aparecer repetido essa
+   quantidade de vezes na timeline, com o descanso entre as repetições e não após a última.
 4. **Given** um exercício em edição, **When** a usuária marca o exercício como livre, **Then** o
    app dispensa tempo de etapa e quantidade de repetições para aquele exercício.
 5. **Given** um exercício em edição, **When** a usuária escolhe disparo automático, **Then** o app
@@ -137,8 +161,11 @@ no dia e horário certos e abre a timeline correta.
   um ou mais horários de ocorrência.
 - **FR-002**: O sistema MUST aceitar treinos compostos por séries, por exercícios diretos, ou por
   ambos, sem exigir a criação de séries.
-- **FR-003**: O sistema MUST permitir que cada série contenha uma lista ordenada de exercícios e
-  um tempo de descanso entre séries.
+- **FR-003**: O sistema MUST permitir que cada série contenha uma lista ordenada de exercícios,
+  uma quantidade de séries maior ou igual a 1 e um tempo de descanso entre séries.
+- **FR-003a**: O sistema MUST repetir o grupo de exercícios da série tantas vezes quantas forem a
+  quantidade de séries configurada, aplicando o tempo de descanso entre uma repetição do grupo e
+  a seguinte, e MUST NOT aplicar o descanso após a última repetição do grupo.
 - **FR-004**: O sistema MUST permitir que cada exercício tenha nome, quantidade de repetições e
   uma lista ordenada de etapas, cada etapa com descrição e tempo de execução.
 - **FR-005**: O sistema MUST permitir marcar um exercício como livre, dispensando tempo de etapa
@@ -157,16 +184,20 @@ no dia e horário certos e abre a timeline correta.
   configurado com disparo automático, e MUST impedir o salvamento sem esse tempo.
 - **FR-011**: O sistema MUST contar o tempo de preparação após a conclusão do item anterior e
   antes do início da primeira etapa do exercício automático, exibindo contagem regressiva.
-- **FR-012**: Durante o tempo de preparação, usuários MUST ser capazes de iniciar imediatamente ou
-  adiar o início do exercício.
+- **FR-012**: Durante o tempo de preparação, usuários MUST ser capazes de iniciar imediatamente
+  ou adiar o início do exercício.
+- **FR-012a**: Ao adiar, o sistema MUST cancelar a contagem de preparação e passar a aguardar o
+  acionamento do botão de início, MUST limitar esse efeito à sessão em andamento e MUST NOT
+  alterar a configuração de disparo automático do exercício.
 - **FR-013**: O sistema MUST NOT iniciar automaticamente um exercício configurado como manual.
 
 #### Interface do treino
 
 - **FR-014**: O sistema MUST apresentar o treino como uma timeline vertical contendo, em ordem de
-  execução, séries, exercícios, etapas, repetições, descansos entre séries e tempos de preparação.
-- **FR-015**: O sistema MUST exibir, em cada item da timeline, o tempo previsto e o estado de
-  conclusão.
+  execução, séries, cada repetição da série, exercícios, etapas, repetições, descansos entre
+  séries e tempos de preparação.
+- **FR-015**: O sistema MUST exibir, em cada item da timeline, o tempo previsto e o estado do
+  item: pendente, em execução, concluído ou pulado.
 - **FR-016**: O sistema MUST destacar o item em execução e rolar a timeline automaticamente para
   mantê-lo visível, sem impedir a rolagem manual.
 - **FR-017**: O sistema MUST identificar exercícios livres como sem tempo previsto, em vez de
@@ -183,16 +214,27 @@ no dia e horário certos e abre a timeline correta.
   descanso e preparação.
 - **FR-022**: O sistema MUST manter a contagem de tempo correta com o app em segundo plano ou com
   a tela desligada, recalculando o estado por tempo absoluto ao retornar.
+- **FR-022a**: O sistema MUST impedir que a tela apague automaticamente enquanto houver um treino
+  em execução, e MUST devolver o comportamento padrão do sistema ao concluir, pausar ou sair do
+  treino.
 - **FR-023**: Usuários MUST ser capazes de pausar, retomar e pular o item em execução.
+- **FR-023a**: O sistema MUST registrar o item pulado com um estado próprio, distinto de
+  concluído e de pendente, e MUST exibi-lo na timeline de forma visualmente diferente de um item
+  concluído.
 - **FR-024**: O sistema MUST permitir que exercícios livres sejam concluídos manualmente pelo
   usuário, já que não têm término cronometrado.
-- **FR-025**: O sistema MUST preservar o progresso de um treino interrompido e permitir retomá-lo
-  do ponto em que parou.
+- **FR-025**: O sistema MUST registrar cada execução de um treino como uma sessão própria, com
+  seus próprios checks e seu próprio progresso.
+- **FR-025a**: O sistema MUST preservar o progresso de uma sessão interrompida e, ao abrir o
+  treino no mesmo dia, MUST oferecer ao usuário retomar do ponto em que parou ou recomeçar do
+  zero.
+- **FR-025b**: O sistema MUST iniciar uma sessão zerada quando o treino for aberto em um dia
+  diferente do da última sessão inacabada.
 
 #### Conclusão e progresso
 
-- **FR-026**: O sistema MUST expor um check de conclusão individual para treino, série, exercício
-  e etapa.
+- **FR-026**: O sistema MUST expor um check de conclusão individual para treino, série,
+  exercício e etapa, sempre no escopo da sessão em andamento.
 - **FR-027**: O sistema MUST marcar automaticamente o check ao concluir um item cronometrado, e
   MUST permitir que o usuário marque e desmarque itens manualmente.
 - **FR-028**: O sistema MUST exibir de forma contínua, durante a execução, a porcentagem
@@ -200,12 +242,14 @@ no dia e horário certos e abre a timeline correta.
 - **FR-029**: O sistema MUST exibir de forma contínua o tempo restante estimado até o fim do
   treino.
 - **FR-030**: O sistema MUST calcular porcentagem e tempo restante considerando etapas,
-  repetições, descansos entre séries e tempos de preparação, recalculando a cada conclusão ou
-  pulo de item.
+  repetições, quantidade de séries, descansos entre séries e tempos de preparação, recalculando a
+  cada conclusão ou pulo de item.
+- **FR-030a**: O sistema MUST remover o item pulado do total considerado no cálculo da
+  porcentagem concluída e do tempo restante, e MUST NOT contabilizá-lo como concluído.
 - **FR-031**: O sistema MUST NOT contabilizar no tempo restante estimado o tempo de espera por um
   disparo manual.
-- **FR-032**: O sistema MUST indicar a conclusão do treino quando todos os itens estiverem
-  marcados.
+- **FR-032**: O sistema MUST indicar a conclusão do treino quando todos os itens não pulados
+  estiverem concluídos, e MUST informar quantos itens foram pulados na sessão.
 
 #### Lembretes, dados e disponibilidade
 
@@ -221,16 +265,18 @@ no dia e horário certos e abre a timeline correta.
 - **Treino**: a prescrição completa a ser executada. Possui nome, dias da semana, horários de
   ocorrência, estado de conclusão da sessão e uma lista ordenada de itens, que podem ser séries
   ou exercícios diretos.
-- **Série**: agrupamento opcional de exercícios dentro de um treino. Possui ordem, tempo de
-  descanso entre séries e estado de conclusão.
+- **Série**: agrupamento opcional de exercícios dentro de um treino. Possui ordem, quantidade de
+  séries (quantas vezes o grupo se repete), tempo de descanso entre séries e estado de conclusão
+  por repetição do grupo e do conjunto.
 - **Exercício**: unidade de execução. Possui nome, quantidade de repetições, indicador de
   exercício livre, modo de disparo inicial (manual ou automático), tempo de preparação quando
   automático, lista ordenada de etapas e estado de conclusão.
 - **Etapa**: menor unidade de execução. Possui descrição, tempo de execução, ordem dentro do
   exercício e estado de conclusão.
-- **Sessão de Execução**: o registro de uma execução do treino em uma data e horário. Guarda o
-  ponto em que a execução está, os itens já concluídos e os instantes de início e fim, permitindo
-  retomar de onde parou e calcular progresso.
+- **Sessão de Execução**: o registro de uma execução do treino em uma data e horário. É a dona
+  dos checks e do progresso: guarda o ponto em que a execução está, os itens já concluídos e os
+  instantes de início e fim. Cada execução do treino origina uma sessão nova, permitindo executar
+  o mesmo treino várias vezes no mesmo dia sem interferência entre elas.
 - **Lembrete**: a combinação de um treino com um dia da semana e um horário que origina um aviso
   ao usuário.
 
@@ -245,7 +291,7 @@ no dia e horário certos e abre a timeline correta.
 - **SC-003**: em 100% das execuções em que a tela permanece bloqueada por até 30 minutos, o
   estado do treino ao retornar corresponde ao instante real, sem atraso acumulado.
 - **SC-004**: durante 100% do tempo de execução do treino, a porcentagem concluída e o tempo
-  restante estão visíveis sem qualquer interação do usuário.
+  restante estão visíveis sem qualquer interação do usuário e sem que a tela apague sozinha.
 - **SC-005**: o usuário conclui um treino cronometrado inteiro sem tocar na tela, exceto nos
   disparos manuais configurados por ele.
 - **SC-006**: um usuário novo cadastra o treino de exemplo, com uma série, dois exercícios e
@@ -272,7 +318,8 @@ no dia e horário certos e abre a timeline correta.
 - Se o dispositivo estiver no silencioso, a vibração é o sinal de transição; se ambos estiverem
   indisponíveis, permanece o destaque visual na timeline.
 - Histórico de longo prazo, relatórios de aderência, gráficos de evolução e compartilhamento com
-  o fisioterapeuta estão fora do escopo desta versão.
+  o fisioterapeuta estão fora do escopo desta versão. As sessões são registradas apenas para
+  permitir a retomada e o cálculo de progresso, sem tela de histórico nesta versão.
 - Vídeos, imagens ou animações demonstrativas dos exercícios estão fora do escopo desta versão; a
   etapa é descrita por texto.
 - A escolha de plataforma mobile, framework e mecanismo de armazenamento é decisão da fase de
