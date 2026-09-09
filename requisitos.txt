@@ -1,0 +1,22 @@
+
+Estou fazendo fisioterapia e gostaria de criar um sistema mobile para que eu consiga acompanhar os exercícios passados em casa, principalmente em relação ao tempo de cada etapa do exercício, à quantidade de repetições e quantidade de séries. 
+
+Desta forma temos algumas definições para este app:
+Treino: Formado pelas séries de exercícios ou exercícios. O treino deve ter os dias da semana e os horários que ocorrem.
+Séries: conjunto de exercícios. Não é obrigatório organizar por séries, pode organizar só por exercícios. Cada série possui um tempo entre séries.
+Exercício: conjunto de etapas com descrição e tempo de execução. Cada execício possui repetições. O exercício também pode ser livre de tempo e repetição.
+
+Cada elemento deve ter um check indicando que foi concluído. 
+
+O sistema deve mostrar uma barra ou um símbolo que mostra a porcentagem já realizada e o tempo restante para finalizar o treino.
+
+
+Um exemplo de estrutura:
+- Treino de fisio Lana (seg, qua, sexta - 8h, 13h e 18h)
+-- Série única
+--- Exercício Contrair (8 repetições)
+---- 1. Contrai e segura (tempo: 7s)
+---- 2. Descansa (tempo: 4s)
+--- Exercício Contrai/Relaxa (10 repetições)
+---- 1. Contrai (2s)
+---- 2. Relaxa (2s)
